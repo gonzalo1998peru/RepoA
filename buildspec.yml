@@ -1,0 +1,32 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - npm install
+      - pip install --upgrade aws-sam-cli
+      - pip show aws-sam-cli  # Verificar la instalación de SAM CLI
+
+  pre_build:
+    commands:
+      - echo "Pre-Build Phase"
+
+  build:
+    commands:
+      - sam build --debug  # Añadir --debug para obtener más detalles
+
+  post_build:
+    commands:
+      - echo "Packaging SAM Template"
+      - sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket bucketsprint1
+      - aws cloudformation deploy --template-file packaged.yaml --stack-name sprint1 --capabilities CAPABILITY_NAMED_IAM --region us-east-2
+      - echo "Deploying Microfront 3"
+      - aws s3 sync ./front/microfront1 s3://mfbucket3 --delete
+      - echo "Deploying Microfront 4"
+      - aws s3 sync ./front/microfront2 s3://mfbucket4 --delete
+
+artifacts:
+  files:
+    - template.yaml
